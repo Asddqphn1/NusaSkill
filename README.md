@@ -49,6 +49,42 @@ curl http://localhost:3000/auth/me \
 	-H "Authorization: Bearer TOKEN"
 ```
 
+User profile CRUD endpoints (replace TOKEN):
+
+Create user profile:
+```sh
+curl -X POST http://localhost:3000/user-profiles \
+	-H "Authorization: Bearer TOKEN" \
+	-H "Content-Type: application/json" \
+	-d '{"nama":"Joko","lokasi":"Bandung","pendidikanTerakhir":"S1","waktuBelajarJam":2,"levelKemampuan":"Beginner","targetCareer":"Backend Developer"}'
+```
+
+List user profiles:
+```sh
+curl http://localhost:3000/user-profiles \
+	-H "Authorization: Bearer TOKEN"
+```
+
+Get profile by id:
+```sh
+curl http://localhost:3000/user-profiles/1 \
+	-H "Authorization: Bearer TOKEN"
+```
+
+Update profile by id:
+```sh
+curl -X PUT http://localhost:3000/user-profiles/1 \
+	-H "Authorization: Bearer TOKEN" \
+	-H "Content-Type: application/json" \
+	-d '{"targetCareer":"Fullstack Developer"}'
+```
+
+Delete profile by id:
+```sh
+curl -X DELETE http://localhost:3000/user-profiles/1 \
+	-H "Authorization: Bearer TOKEN"
+```
+
 To run:
 ```sh
 bun run dev

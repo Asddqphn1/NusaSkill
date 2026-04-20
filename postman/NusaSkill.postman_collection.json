@@ -3,7 +3,7 @@
     "_postman_id": "b0dcd2da-3894-44be-85f2-b656f31ddf3b",
     "name": "NusaSkill API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Postman collection untuk testing endpoint NusaSkill (root + auth)."
+    "description": "Postman collection untuk testing endpoint NusaSkill (root + auth + user profile CRUD)."
   },
   "variable": [
     {
@@ -20,6 +20,10 @@
     },
     {
       "key": "token",
+      "value": ""
+    },
+    {
+      "key": "profileId",
       "value": ""
     }
   ],
@@ -171,6 +175,215 @@
               ]
             },
             "description": "Ambil profil user berdasarkan Bearer token dari variable token."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Profile",
+      "item": [
+        {
+          "name": "Create User Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const data = pm.response.json();",
+                  "if (data && data.profile && data.profile.id) {",
+                  "  pm.collectionVariables.set('profileId', String(data.profile.id));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"Joko\",\n  \"lokasi\": \"Bandung\",\n  \"pendidikanTerakhir\": \"S1\",\n  \"waktuBelajarJam\": 2,\n  \"levelKemampuan\": \"Beginner\",\n  \"targetCareer\": \"Backend Developer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user-profiles"
+              ]
+            },
+            "description": "Create profile dan simpan id profile ke collection variable profileId."
+          },
+          "response": []
+        },
+        {
+          "name": "List User Profiles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user-profiles"
+              ]
+            },
+            "description": "List semua profile milik user login."
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Profile By Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles/{{profileId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user-profiles",
+                "{{profileId}}"
+              ]
+            },
+            "description": "Ambil detail profile berdasarkan profileId."
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetCareer\": \"Fullstack Developer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles/{{profileId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user-profiles",
+                "{{profileId}}"
+              ]
+            },
+            "description": "Update sebagian data profile berdasarkan profileId."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user-profiles/{{profileId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user-profiles",
+                "{{profileId}}"
+              ]
+            },
+            "description": "Hapus profile berdasarkan profileId."
           },
           "response": []
         }
