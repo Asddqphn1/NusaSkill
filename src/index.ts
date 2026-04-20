@@ -1,5 +1,7 @@
+import 'dotenv/config'
 import { Hono } from 'hono'
 import { Pool } from 'pg'
+import { authRoutes } from './routes/auth.route'
 
 const app = new Hono()
 
@@ -33,5 +35,7 @@ app.get('/health/db', async (c) => {
     )
   }
 })
+
+app.route('/auth', authRoutes)
 
 export default app
