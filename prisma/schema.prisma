@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// 1. Model User
+model User {
+  id        Int           @id @default(autoincrement())
+  email     String        @unique @db.VarChar(255)
+  password  String        @db.VarChar(255)
+  createdAt DateTime      @default(now()) @map("created_at")
+  
+  // Relasi 1:M ke UserProfile
+  profiles  UserProfile[]
+
+  @@map("users") // Nama tabel di database
+}
+
+// 2. Model StandardKompetensi
+model StandardKompetensi {
+  id                 Int      @id @default(autoincrement())
+  kodeUnit           String   @unique @map("kode_unit") @db.VarChar(100)
+  judulKopetensi     String   @map("judul_kopetensi") @db.VarChar(255)
+  deskripsiUnit      String?  @map("deskripsi_unit") @db.Text
+  pengetahuan        Json?    // Otomatis jadi JSONB di Postgres
+  keterampilan       Json?
+  elemenKompetensi   Json?    @map("elemen_kompetensi")
+  kriteriaUnjukKerja Json?    @map("kriteria_unjuk_kerja")
+  sumberStandar      String?  @map("sumber_standar") @db.VarChar(255)
+
+  @@map("standard_kompetensi")
+}
+
+// 3. Model UserProfile
+model UserProfile {
+  id                 Int      @id @default(autoincrement())
+  userId             Int      @map("user_id")
+  nama               String   @db.VarChar(255)
+  lokasi             String?  @db.VarChar(255)
+  pendidikanTerakhir String?  @map("pendidikan_terakhir") @db.VarChar(100)
+  waktuBelajarJam    Int?     @map("waktu_belajar_jam")
+  levelKemampuan     String?  @map("level_kemampuan") @db.VarChar(50)
+  targetCareer       String?  @map("target_career") @db.VarChar(255)
+
+  // Definisi Relasi (Foreign Key)
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Relasi balikan dari anak-anaknya (1:M)
+  assessments        Assessment[]
+  roadmaps           LearningRoadmap[]
+
+  @@map("user_profiles")
+}
+
+// 4. Model Assessment
+model Assessment {
+  id                Int      @id @default(autoincrement())
+  profileId         Int      @map("profile_id")
+  questionsJson     Json?    @map("questions_json")
+  userAnswersJson   Json?    @map("user_answers_json")
+  gapAnalysisResult String?  @map("gap_analysis_result") @db.Text
+  scoreSummary      Float?   @map("score_summary") @db.Real
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Definisi Relasi
+  profile           UserProfile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  // Relasi balikan ke Roadmap (1:M)
+  roadmaps          LearningRoadmap[]
+
+  @@map("assessments")
+}
+
+// 5. Model LearningRoadmap
+model LearningRoadmap {
+  id            Int      @id @default(autoincrement())
+  profileId     Int      @map("profile_id")
+  assessmentId  Int      @map("assessment_id")
+  roadmapSyntax String?  @map("roadmap_syntax") @db.Text
+  totalNodes    Int?     @map("total_nodes")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Definisi Relasi (Dua FK merujuk ke tabel berbeda)
+  profile       UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  assessment    Assessment  @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@map("learning_roadmaps")
+}
