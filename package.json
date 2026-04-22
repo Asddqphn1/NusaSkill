@@ -18,7 +18,8 @@
     "dev": "bun run --hot src/index.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "db:smoke": "tsx scripts/prisma-smoke.ts"
+    "db:smoke": "tsx scripts/prisma-smoke.ts",
+    "db:seed:standar-kompetensi": "tsx scripts/seed-standard-kompetensi.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.7.0",

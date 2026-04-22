@@ -27,6 +27,11 @@ Smoke test insert data to database:
 npm run db:smoke
 ```
 
+Seed standard kompetensi from static seed data (no PDF needed):
+```sh
+npm run db:seed:standar-kompetensi
+```
+
 Authentication endpoints:
 
 Register:
