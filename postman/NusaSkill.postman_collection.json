@@ -3,7 +3,7 @@
     "_postman_id": "b0dcd2da-3894-44be-85f2-b656f31ddf3b",
     "name": "NusaSkill API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Postman collection untuk testing endpoint NusaSkill (root + auth + user profile CRUD)."
+    "description": "Postman collection untuk testing endpoint NusaSkill (root + auth + user profile CRUD + standar kompetensi CRUD)."
   },
   "variable": [
     {
@@ -24,6 +24,10 @@
     },
     {
       "key": "profileId",
+      "value": ""
+    },
+    {
+      "key": "standarKompetensiId",
       "value": ""
     }
   ],
@@ -384,6 +388,215 @@
               ]
             },
             "description": "Hapus profile berdasarkan profileId."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Standar Kompetensi",
+      "item": [
+        {
+          "name": "Create Standar Kompetensi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const data = pm.response.json();",
+                  "if (data && data.standarKompetensi && data.standarKompetensi.id) {",
+                  "  pm.collectionVariables.set('standarKompetensiId', String(data.standarKompetensi.id));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kodeUnit\": \"X.000000.001.01\",\n  \"judulKopetensi\": \"Contoh Unit Kompetensi\",\n  \"deskripsiUnit\": \"Deskripsi contoh unit kompetensi\",\n  \"pengetahuan\": {\n    \"rawText\": \"Contoh pengetahuan\",\n    \"items\": [\"Dasar konsep\", \"Prinsip kerja\"]\n  },\n  \"keterampilan\": {\n    \"rawText\": \"Contoh keterampilan\",\n    \"items\": [\"Analisis kebutuhan\", \"Implementasi solusi\"]\n  },\n  \"elemenKompetensi\": {\n    \"rawText\": \"Contoh elemen\",\n    \"items\": [\"Menentukan ruang lingkup\", \"Menyusun rencana\"]\n  },\n  \"kriteriaUnjukKerja\": {\n    \"rawText\": \"Contoh kriteria\",\n    \"items\": [\"Sesuai kebutuhan\", \"Dapat diuji\"]\n  },\n  \"sumberStandar\": \"Manual Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/standar-kompetensi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "standar-kompetensi"
+              ]
+            },
+            "description": "Create standar kompetensi dan simpan id ke variable standarKompetensiId."
+          },
+          "response": []
+        },
+        {
+          "name": "List Standar Kompetensi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/standar-kompetensi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "standar-kompetensi"
+              ]
+            },
+            "description": "List semua data standar kompetensi."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Standar Kompetensi By Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/standar-kompetensi/{{standarKompetensiId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "standar-kompetensi",
+                "{{standarKompetensiId}}"
+              ]
+            },
+            "description": "Ambil detail standar kompetensi berdasarkan standarKompetensiId."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Standar Kompetensi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"judulKopetensi\": \"Contoh Unit Kompetensi (Updated)\",\n  \"deskripsiUnit\": \"Deskripsi unit setelah update\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/standar-kompetensi/{{standarKompetensiId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "standar-kompetensi",
+                "{{standarKompetensiId}}"
+              ]
+            },
+            "description": "Update data standar kompetensi berdasarkan standarKompetensiId."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Standar Kompetensi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/standar-kompetensi/{{standarKompetensiId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "standar-kompetensi",
+                "{{standarKompetensiId}}"
+              ]
+            },
+            "description": "Hapus data standar kompetensi berdasarkan standarKompetensiId."
           },
           "response": []
         }
