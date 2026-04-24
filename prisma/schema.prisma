@@ -26,19 +26,40 @@ model User {
 }
 
 // 2. Model StandardKompetensi
-model StandardKompetensi {
-  id                 Int      @id @default(autoincrement())
-  kodeUnit           String   @unique @map("kode_unit") @db.VarChar(100)
-  judulKopetensi     String   @map("judul_kopetensi") @db.VarChar(255)
-  deskripsiUnit      String?  @map("deskripsi_unit") @db.Text
-  pengetahuan        Json?    // Otomatis jadi JSONB di Postgres
-  keterampilan       Json?
-  elemenKompetensi   Json?    @map("elemen_kompetensi")
-  kriteriaUnjukKerja Json?    @map("kriteria_unjuk_kerja")
-  sumberStandar      String?  @map("sumber_standar") @db.VarChar(255)
-
-  @@map("standard_kompetensi")
+model Career {
+  id           String             @id @default(cuid())
+  name         String             // Contoh: "Frontend Engineer", "Machine Learning Engineer"
+  description  String?            @db.Text
+  competencies CareerCompetency[] // Relasi Many-to-Many via Join Table
+  profiles     UserProfile[]
 }
+
+model StandardKompetensi {
+  id                 Int               @id @default(autoincrement())
+  kodeUnit           String            @unique @map("kode_unit") @db.VarChar(100)
+  judulKopetensi     String            @map("judul_kompetensi") @db.VarChar(255)
+  deskripsiUnit      String?           @map("deskripsi_unit") @db.Text
+  pengetahuan        Json?             // Mengacu pada Pengetahuan di SKKNI [cite: 222, 284]
+  keterampilan       Json?             // Mengacu pada Keterampilan di SKKNI [cite: 227, 290]
+  elemenKompetensi   Json?             @map("elemen_kompetensi") // Langkah-langkah tugas [cite: 188, 248]
+  kriteriaUnjukKerja Json?             @map("kriteria_unjuk_kerja") // Detail penilaian (KUK) [cite: 188, 248]
+  sumberStandar      String?           @map("sumber_standar") @db.VarChar(255) // Contoh: 'SKKNI 103/2026' [cite: 62]
+  careers            CareerCompetency[]
+
+  @@map("StandardKompetensi")
+}
+
+// Tabel Pivot untuk Many-to-Many
+model CareerCompetency {
+  careerId            String
+  competencyId        Int
+  career              Career             @relation(fields: [careerId], references: [id], onDelete: Cascade)
+  competency          StandardKompetensi @relation(fields: [competencyId], references: [id], onDelete: Cascade)
+
+  @@id([careerId, competencyId])
+  @@map("CareerCompetency")
+}
+
 
 // 3. Model UserProfile
 model UserProfile {
@@ -49,15 +70,17 @@ model UserProfile {
   pendidikanTerakhir String?  @map("pendidikan_terakhir") @db.VarChar(100)
   waktuBelajarJam    Int?     @map("waktu_belajar_jam")
   levelKemampuan     String?  @map("level_kemampuan") @db.VarChar(50)
-  targetCareer       String?  @map("target_career") @db.VarChar(255)
+  targetCareerId     String?  @map("target_career_id")
 
   // Definisi Relasi (Foreign Key)
   user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  targetCareer       Career?           @relation(fields: [targetCareerId], references: [id], onDelete: SetNull)
   
   // Relasi balikan dari anak-anaknya (1:M)
   assessments        Assessment[]
   roadmaps           LearningRoadmap[]
 
+  @@index([targetCareerId])
   @@map("user_profiles")
 }
 

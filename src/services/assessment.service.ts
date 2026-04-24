@@ -20,28 +20,23 @@ export async function generatePreTest(userId: number, profileId: number) {
   const profile = await findUserProfileById(profileId);
   if (!profile || profile.userId !== userId)
     throw new AssessmentError("Unauthorized", 404);
-  if (!profile.targetCareer)
+  if (!profile.targetCareerId)
     throw new AssessmentError("Target career required", 400);
 
-  const relevantSkkni = await prisma.standardKompetensi.findMany({
-    where: {
-      OR: [
-        {
-          judulKopetensi: {
-            contains: profile.targetCareer,
-            mode: "insensitive",
-          },
+  const career = await prisma.career.findUnique({
+    where: { id: profile.targetCareerId },
+    include: {
+      competencies: {
+        include: {
+          competency: true,
         },
-        {
-          deskripsiUnit: {
-            contains: profile.targetCareer,
-            mode: "insensitive",
-          },
-        },
-      ],
+      },
     },
-    take: 3,
   });
+
+  if (!career) throw new AssessmentError("Career not found", 404);
+
+  const relevantSkkni = career.competencies.map((item) => item.competency);
 
   if (relevantSkkni.length === 0)
     throw new AssessmentError("SKKNI tidak ditemukan", 404);
@@ -58,7 +53,7 @@ export async function generatePreTest(userId: number, profileId: number) {
     Konteks Profil User:
     - Pendidikan: ${profile.pendidikanTerakhir || "Tidak diketahui"}
     - Level Kemampuan Saat Ini: ${profile.levelKemampuan || "Pemula"}
-    - Target Karir: ${profile.targetCareer}
+    - Target Karir: ${career.name}
     
     Data SKKNI (Kriteria Unjuk Kerja):
     ${JSON.stringify(skkniContext)}
