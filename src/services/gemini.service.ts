@@ -4,9 +4,9 @@ export class GeminiService {
   private static async fetchWithRetry(
     prompt: string,
     systemPrompt: string,
-    retries = 5,
+    retries = 1,
   ): Promise<any> {
-    const modelId = "gemini-1.5-flash-latest";
+    const modelId = "gemini-flash-latest";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
     for (let i = 0; i < retries; i++) {
       try {
@@ -22,8 +22,11 @@ export class GeminiService {
           }),
         });
 
-        if (!response.ok)
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error("Gemini API Error Detail:", errorData);
           throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
         const result = await response.json();
         const text = result.candidates?.[0]?.content?.parts?.[0]?.text;

@@ -5,6 +5,8 @@ import {
   findAssessmentById,
   updateAssessmentScore,
 } from "../repositories/assessment.repository";
+import { createProgressJRS } from "../repositories/user-progress-jrs.repository";
+import { generateRoadmap } from "./roadmap.service";
 import { GeminiService } from "./gemini.service";
 
 type AssessmentStatusCode = 400 | 401 | 404;
@@ -89,10 +91,16 @@ export async function submitPreTest(
   assessmentId: number,
   userAnswers: number[],
 ) {
-  // ... (Logika submitPreTest tetap sama seperti sebelumnya) ...
+  // ── 1. Validate assessment exists ──────────────────────────────────────
   const assessment = await findAssessmentById(assessmentId);
   if (!assessment) throw new AssessmentError("Assessment not found", 404);
 
+  // ── 2. Validate ownership via profile ──────────────────────────────────
+  const profile = await findUserProfileById(assessment.profileId);
+  if (!profile || profile.userId !== userId)
+    throw new AssessmentError("Unauthorized", 401);
+
+  // ── 3. Grade answers — map userAnswerIndex to correctIndex ─────────────
   const questions = assessment.questionsJson as Array<any>;
   let passedKUK = 0;
   const totalKUK = questions.length;
@@ -108,8 +116,50 @@ export async function submitPreTest(
     };
   });
 
+  // ── 4. Calculate JRS: (Passed KUK / Total KUK) * 100 ──────────────────
   const jrsScore = (passedKUK / totalKUK) * 100;
+
+  // ── 5. Save score to Assessment table (score_summary + user_answers_json)
   await updateAssessmentScore(assessmentId, detailedResults, jrsScore);
+
+  // ── 6. TICKET 01: Save JRS snapshot to UserProgressJRS for Impact Projection graph
+  const careerName = profile.targetCareer?.name ?? "Unknown Career";
+  await createProgressJRS({
+    profileId: assessment.profileId,
+    assessmentId,
+    jrsScore,
+    passedKUK,
+    totalKUK,
+    careerName,
+  });
+
+  // ── 7. TICKET 02: Generate AI Roadmap from failed KUKs ────────────────
+  const failedKUKs = detailedResults
+    .filter((r) => !r.isCorrect)
+    .map((r) => ({
+      kukReference: r.kukReference,
+      reasoning: r.reasoning,
+    }));
+
+  let roadmap = null;
+  if (failedKUKs.length > 0) {
+    try {
+      roadmap = await generateRoadmap(
+        assessmentId,
+        assessment.profileId,
+        failedKUKs,
+        {
+          pendidikan: profile.pendidikanTerakhir || "Tidak diketahui",
+          levelKemampuan: profile.levelKemampuan || "Pemula",
+          careerName,
+          waktuBelajarJam: profile.waktuBelajarJam,
+        },
+      );
+    } catch (error) {
+      // Roadmap generation is non-blocking — log error but don't fail the submission
+      console.error("Roadmap generation failed:", error);
+    }
+  }
 
   return {
     message: "Success",
@@ -117,6 +167,13 @@ export async function submitPreTest(
     passedKUK,
     totalKUK,
     results: detailedResults,
+    roadmap: roadmap
+      ? {
+          roadmapId: roadmap.id,
+          totalNodes: roadmap.totalNodes,
+          data: roadmap.roadmapData,
+        }
+      : null,
   };
 }
 
@@ -127,31 +184,33 @@ export async function submitPreTest(
 function buildSystemPrompt() {
   return `
 Persona
-Anda adalah seorang Senior Asesor Kompetensi yang ditugaskan untuk mengaudit standar Keputusan Menteri Ketenagakerjaan No. 103 Tahun 2026. Anda sangat objektif, faktual, dan tidak pernah menggunakan terminologi di luar dokumen SKKNI. Bahasa Anda profesional namun mudah dipahami oleh masyarakat umum.
+Anda adalah seorang Asesor Kompetensi Senior dan Ahli Psikometri. Anda menyusun instrumen evaluasi berdasarkan pendekatan Competency-Based Assessment (CBA). Anda objektif, faktual, dan selalu merujuk teguh pada standar SKKNI. Bahasa Anda profesional, terstruktur, namun mudah dipahami.
 
 Tugas
-1. Analisis kesenjangan (Gap Analysis) antara "Konteks Profil User" dengan "Data SKKNI".
-2. Buat tepat 10 soal pilihan ganda (Pre-Test) yang HANYA menguji Kriteria Unjuk Kerja (KUK) yang diprediksi belum dikuasai oleh user berdasarkan level kemampuan saat ini.
-3. Berikan penjelasan logis (reasoning) untuk setiap jawaban benar yang merujuk langsung ke teks KUK SKKNI.
+1. Lakukan Diagnostic Assessment (Gap Analysis) antara "Konteks Profil User" dengan tuntutan "Data SKKNI".
+2. Buat tepat 10 soal pilihan ganda (Multiple Choice Questions) berbasis Situational Judgment Test (SJT).
+3. Soal TIDAK BOLEH berupa hafalan teori (Level Kognitif C1/C2 Taxonomy Bloom). Setiap soal HARUS berupa studi kasus teknis atau skenario masalah dunia nyata yang memaksa user melakukan penerapan atau analisis (Level C3/C4 Taxonomy Bloom) terhadap Kriteria Unjuk Kerja (KUK) SKKNI yang diprediksi belum dikuasai user.
+4. Rancang 1 opsi jawaban yang paling optimal (kunci jawaban) dan 3 distraktor (opsi salah) yang plausible/masuk akal. Distraktor harus merepresentasikan kesalahan umum (common pitfalls) atau miskonsepsi di industri untuk memastikan daya beda soal yang tinggi.
+5. Susun penjelasan logis (reasoning) untuk jawaban benar yang merujuk langsung ke teks atau esensi KUK SKKNI terkait.
 
 Konteks
-- Platform ini digunakan oleh masyarakat daerah 3T dengan infrastruktur internet terbatas (Inclusion-First Interface).
-- Pertanyaan harus dirancang ringkas, tidak bertele-tele, dan menghindari kalimat ambigu agar mudah dimuat di perangkat dengan bandwidth rendah.
-- Tingkat kesulitan soal harus disesuaikan secara dinamis dengan "Pendidikan" dan "Level Kemampuan Saat Ini" dari user.
+- Mengacu pada Cognitive Load Theory, kurangi extraneous cognitive load dengan merancang pertanyaan dan opsi jawaban yang ringkas, jelas, dan menghindari kalimat ambigu.
+- Platform ini mengadopsi Inclusion-First Interface untuk masyarakat daerah 3T dengan bandwidth rendah, sehingga teks harus padat makna.
+- Tingkat kesulitan soal disesuaikan secara dinamis (mengadaptasi prinsip dasar Item Response Theory) berdasarkan atribut "Pendidikan" dan "Level Kemampuan Saat Ini" dari profil user.
 
 Format
 Anda HANYA diizinkan merespon dengan format JSON murni tanpa markdown formatting (\`\`\`json). Skema JSON harus seperti ini:
 {
   "title": "[String] Pre-Test SKKNI: Target Karir",
-  "gapAnalysis": "[String] Analisis kesenjangan 1 paragraf ringkas",
+  "gapAnalysis": "[String] Analisis kesenjangan 1 paragraf ringkas berdasar level kompetensi",
   "questions": [
     {
       "id": [Number] Urutan 1-10,
-      "question": "[String] Pertanyaan ringkas",
+      "question": "[String] Skenario/Pertanyaan ringkas",
       "options": ["[String] Opsi A", "[String] Opsi B", "[String] Opsi C", "[String] Opsi D"],
       "correctIndex": [Number] Index jawaban benar (0-3),
       "kukReference": "[String] Teks atau Kode KUK SKKNI yang diuji",
-      "reasoning": "[String] Alasan jawaban benar"
+      "reasoning": "[String] Alasan jawaban benar secara teoretis dan praktis"
     }
   ]
 }

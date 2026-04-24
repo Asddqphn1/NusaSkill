@@ -79,6 +79,7 @@ model UserProfile {
   // Relasi balikan dari anak-anaknya (1:M)
   assessments        Assessment[]
   roadmaps           LearningRoadmap[]
+  progressJRS        UserProgressJRS[]
 
   @@index([targetCareerId])
   @@map("user_profiles")
@@ -105,16 +106,36 @@ model Assessment {
 
 // 5. Model LearningRoadmap
 model LearningRoadmap {
-  id            Int      @id @default(autoincrement())
-  profileId     Int      @map("profile_id")
-  assessmentId  Int      @map("assessment_id")
-  roadmapSyntax String?  @map("roadmap_syntax") @db.Text
-  totalNodes    Int?     @map("total_nodes")
-  createdAt     DateTime @default(now()) @map("created_at")
+  id            Int          @id @default(autoincrement())
+  profileId     Int          @map("profile_id")
+  assessmentId  Int          @map("assessment_id")
+  
+  // Perubahan Utama: Gunakan tipe Json untuk struktur yang kompleks
+  roadmapData   Json         @map("roadmap_data") 
+  
+  totalNodes    Int?         @map("total_nodes")
+  completedNodes Int         @default(0) @map("completed_nodes")
+  status        String       @default("active") // active, completed
+  createdAt     DateTime     @default(now()) @map("created_at")
 
-  // Definisi Relasi (Dua FK merujuk ke tabel berbeda)
-  profile       UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  assessment    Assessment  @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  profile       UserProfile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  assessment    Assessment   @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
 
   @@map("learning_roadmaps")
+}
+
+// 6. Model UserProgressJRS — Menyimpan snapshot JRS untuk grafik Impact Projection
+model UserProgressJRS {
+  id           Int         @id @default(autoincrement())
+  profileId    Int         @map("profile_id")
+  assessmentId Int         @map("assessment_id")
+  jrsScore     Float       @map("jrs_score") @db.Real
+  passedKUK    Int         @map("passed_kuk")
+  totalKUK     Int         @map("total_kuk")
+  careerName   String      @map("career_name") @db.VarChar(255)
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  profile      UserProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("user_progress_jrs")
 }

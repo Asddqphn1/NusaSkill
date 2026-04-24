@@ -6,6 +6,8 @@ import { standardKompetensiRoutes } from "./routes/standard-kompetensi.route";
 import { userProfileRoutes } from "./routes/user-profile.route";
 import { assessmentRoutes } from "./routes/assessment.route";
 import { careerRoutes } from "./routes/career.route";
+import { roadmapRoutes } from "./routes/roadmap.route";
+import { progressJRSRoutes } from "./routes/user-progress-jrs.route";
 
 const app = new Hono();
 
@@ -46,5 +48,7 @@ app.route("/standar-kompetensi", standardKompetensiRoutes);
 app.route("/user-profiles", userProfileRoutes);
 app.route("/assessments", assessmentRoutes);
 app.route("/careers", careerRoutes);
+app.route("/roadmaps", roadmapRoutes);
+app.route("/progress-jrs", progressJRSRoutes);
 
 export default app;
