@@ -1,78 +1,27 @@
 {
   "info": {
-    "_postman_id": "b0dcd2da-3894-44be-85f2-b656f31ddf3b",
     "name": "NusaSkill API",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Postman collection untuk testing endpoint NusaSkill (root + auth + user profile CRUD + standar kompetensi CRUD)."
+    "description": "Postman Collection for NusaSkill API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
-      "key": "baseUrl",
-      "value": "http://localhost:3000"
-    },
-    {
-      "key": "email",
-      "value": "joko@example.com"
-    },
-    {
-      "key": "password",
-      "value": "123456"
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
     },
     {
       "key": "token",
-      "value": ""
-    },
-    {
-      "key": "profileId",
-      "value": ""
-    },
-    {
-      "key": "standarKompetensiId",
-      "value": ""
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
-    {
-      "name": "Health - Root",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{baseUrl}}/",
-          "host": [
-            "{{baseUrl}}"
-          ],
-          "path": [
-            ""
-          ]
-        },
-        "description": "Cek API aktif."
-      },
-      "response": []
-    },
     {
       "name": "Auth",
       "item": [
         {
           "name": "Register",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "const data = pm.response.json();",
-                  "if (data && data.token) {",
-                  "  pm.collectionVariables.set('token', data.token);",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "POST",
             "header": [
@@ -83,21 +32,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/register",
+              "raw": "{{base_url}}/auth/register",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "auth",
                 "register"
               ]
-            },
-            "description": "Register user baru. Token otomatis disimpan ke variable token."
-          },
-          "response": []
+            }
+          }
         },
         {
           "name": "Login",
@@ -106,13 +53,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "const data = pm.response.json();",
-                  "if (data && data.token) {",
-                  "  pm.collectionVariables.set('token', data.token);",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData && jsonData.token) {",
+                  "    pm.collectionVariables.set(\"token\", jsonData.token);",
                   "}"
                 ],
                 "type": "text/javascript"
@@ -129,37 +72,22 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/login",
+              "raw": "{{base_url}}/auth/login",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "auth",
                 "login"
               ]
-            },
-            "description": "Login user dan refresh token collection variable."
-          },
-          "response": []
+            }
+          }
         },
         {
           "name": "Get Current User",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "GET",
             "header": [
@@ -169,44 +97,67 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/auth/me",
+              "raw": "{{base_url}}/auth/me",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "auth",
                 "me"
               ]
-            },
-            "description": "Ambil profil user berdasarkan Bearer token dari variable token."
-          },
-          "response": []
+            }
+          }
         }
       ]
     },
     {
-      "name": "User Profile",
+      "name": "Standard Kompetensi",
       "item": [
         {
-          "name": "Create User Profile",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "const data = pm.response.json();",
-                  "if (data && data.profile && data.profile.id) {",
-                  "  pm.collectionVariables.set('profileId', String(data.profile.id));",
-                  "}"
-                ],
-                "type": "text/javascript"
+          "name": "List Standard Kompetensi",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
               }
+            ],
+            "url": {
+              "raw": "{{base_url}}/standar-kompetensi",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "standar-kompetensi"
+              ]
             }
-          ],
+          }
+        },
+        {
+          "name": "Get Standard Kompetensi by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/standar-kompetensi/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "standar-kompetensi",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Standard Kompetensi",
           "request": {
             "method": "POST",
             "header": [
@@ -221,36 +172,78 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nama\": \"Joko\",\n  \"lokasi\": \"Bandung\",\n  \"pendidikanTerakhir\": \"S1\",\n  \"waktuBelajarJam\": 2,\n  \"levelKemampuan\": \"Beginner\",\n  \"targetCareer\": \"Backend Developer\"\n}"
+              "raw": "{\n  \"kodeUnit\": \"J.620100.001.02\",\n  \"judulKopetensi\": \"Merancang Antarmuka Pengguna\",\n  \"deskripsiUnit\": \"Unit ini berhubungan dengan...\",\n  \"sumberStandar\": \"SKKNI 103/2026\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/user-profiles",
+              "raw": "{{base_url}}/standar-kompetensi",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
-                "user-profiles"
+                "standar-kompetensi"
               ]
-            },
-            "description": "Create profile dan simpan id profile ke collection variable profileId."
-          },
-          "response": []
+            }
+          }
         },
+        {
+          "name": "Update Standard Kompetensi",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"judulKopetensi\": \"Merancang Antarmuka Pengguna Lanjut\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/standar-kompetensi/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "standar-kompetensi",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Standard Kompetensi",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/standar-kompetensi/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "standar-kompetensi",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Profiles",
+      "item": [
         {
           "name": "List User Profiles",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "GET",
             "header": [
@@ -260,33 +253,18 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/user-profiles",
+              "raw": "{{base_url}}/user-profiles",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "user-profiles"
               ]
-            },
-            "description": "List semua profile milik user login."
-          },
-          "response": []
+            }
+          }
         },
         {
-          "name": "Get User Profile By Id",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "Get User Profile by ID",
           "request": {
             "method": "GET",
             "header": [
@@ -296,34 +274,48 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/user-profiles/{{profileId}}",
+              "raw": "{{base_url}}/user-profiles/1",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "user-profiles",
-                "{{profileId}}"
+                "1"
               ]
+            }
+          }
+        },
+        {
+          "name": "Create User Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nama\": \"John Doe\",\n  \"lokasi\": \"Jakarta\",\n  \"pendidikanTerakhir\": \"S1 Teknik Informatika\",\n  \"waktuBelajarJam\": 10,\n  \"levelKemampuan\": \"Pemula\",\n  \"targetCareerId\": \"cuid-12345\"\n}"
             },
-            "description": "Ambil detail profile berdasarkan profileId."
-          },
-          "response": []
+            "url": {
+              "raw": "{{base_url}}/user-profiles",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "user-profiles"
+              ]
+            }
+          }
         },
         {
           "name": "Update User Profile",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "PUT",
             "header": [
@@ -338,37 +330,22 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"targetCareer\": \"Fullstack Developer\"\n}"
+              "raw": "{\n  \"levelKemampuan\": \"Menengah\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/user-profiles/{{profileId}}",
+              "raw": "{{base_url}}/user-profiles/1",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "user-profiles",
-                "{{profileId}}"
+                "1"
               ]
-            },
-            "description": "Update sebagian data profile berdasarkan profileId."
-          },
-          "response": []
+            }
+          }
         },
         {
           "name": "Delete User Profile",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "DELETE",
             "header": [
@@ -378,44 +355,67 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/user-profiles/{{profileId}}",
+              "raw": "{{base_url}}/user-profiles/1",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
                 "user-profiles",
-                "{{profileId}}"
+                "1"
               ]
-            },
-            "description": "Hapus profile berdasarkan profileId."
-          },
-          "response": []
+            }
+          }
         }
       ]
     },
     {
-      "name": "Standar Kompetensi",
+      "name": "Careers",
       "item": [
         {
-          "name": "Create Standar Kompetensi",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "const data = pm.response.json();",
-                  "if (data && data.standarKompetensi && data.standarKompetensi.id) {",
-                  "  pm.collectionVariables.set('standarKompetensiId', String(data.standarKompetensi.id));",
-                  "}"
-                ],
-                "type": "text/javascript"
+          "name": "List Careers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
               }
+            ],
+            "url": {
+              "raw": "{{base_url}}/careers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "careers"
+              ]
             }
-          ],
+          }
+        },
+        {
+          "name": "Get Career by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/careers/cuid-12345",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "careers",
+                "cuid-12345"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Career",
           "request": {
             "method": "POST",
             "header": [
@@ -430,109 +430,21 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"kodeUnit\": \"X.000000.001.01\",\n  \"judulKopetensi\": \"Contoh Unit Kompetensi\",\n  \"deskripsiUnit\": \"Deskripsi contoh unit kompetensi\",\n  \"pengetahuan\": {\n    \"rawText\": \"Contoh pengetahuan\",\n    \"items\": [\"Dasar konsep\", \"Prinsip kerja\"]\n  },\n  \"keterampilan\": {\n    \"rawText\": \"Contoh keterampilan\",\n    \"items\": [\"Analisis kebutuhan\", \"Implementasi solusi\"]\n  },\n  \"elemenKompetensi\": {\n    \"rawText\": \"Contoh elemen\",\n    \"items\": [\"Menentukan ruang lingkup\", \"Menyusun rencana\"]\n  },\n  \"kriteriaUnjukKerja\": {\n    \"rawText\": \"Contoh kriteria\",\n    \"items\": [\"Sesuai kebutuhan\", \"Dapat diuji\"]\n  },\n  \"sumberStandar\": \"Manual Postman\"\n}"
+              "raw": "{\n  \"name\": \"Frontend Engineer\",\n  \"description\": \"Web developer focusing on UI/UX\",\n  \"competencyIds\": [1, 2, 3]\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/standar-kompetensi",
+              "raw": "{{base_url}}/careers",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
-                "standar-kompetensi"
+                "careers"
               ]
-            },
-            "description": "Create standar kompetensi dan simpan id ke variable standarKompetensiId."
-          },
-          "response": []
+            }
+          }
         },
         {
-          "name": "List Standar Kompetensi",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/standar-kompetensi",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "standar-kompetensi"
-              ]
-            },
-            "description": "List semua data standar kompetensi."
-          },
-          "response": []
-        },
-        {
-          "name": "Get Standar Kompetensi By Id",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/standar-kompetensi/{{standarKompetensiId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "standar-kompetensi",
-                "{{standarKompetensiId}}"
-              ]
-            },
-            "description": "Ambil detail standar kompetensi berdasarkan standarKompetensiId."
-          },
-          "response": []
-        },
-        {
-          "name": "Update Standar Kompetensi",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "Update Career",
           "request": {
             "method": "PUT",
             "header": [
@@ -547,37 +459,22 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"judulKopetensi\": \"Contoh Unit Kompetensi (Updated)\",\n  \"deskripsiUnit\": \"Deskripsi unit setelah update\"\n}"
+              "raw": "{\n  \"name\": \"Senior Frontend Engineer\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/standar-kompetensi/{{standarKompetensiId}}",
+              "raw": "{{base_url}}/careers/cuid-12345",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
-                "standar-kompetensi",
-                "{{standarKompetensiId}}"
+                "careers",
+                "cuid-12345"
               ]
-            },
-            "description": "Update data standar kompetensi berdasarkan standarKompetensiId."
-          },
-          "response": []
+            }
+          }
         },
         {
-          "name": "Delete Standar Kompetensi",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "name": "Delete Career",
           "request": {
             "method": "DELETE",
             "header": [
@@ -587,18 +484,160 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/standar-kompetensi/{{standarKompetensiId}}",
+              "raw": "{{base_url}}/careers/cuid-12345",
               "host": [
-                "{{baseUrl}}"
+                "{{base_url}}"
               ],
               "path": [
-                "standar-kompetensi",
-                "{{standarKompetensiId}}"
+                "careers",
+                "cuid-12345"
               ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assessments",
+      "item": [
+        {
+          "name": "Generate Pre-Test",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profileId\": 1\n}"
             },
-            "description": "Hapus data standar kompetensi berdasarkan standarKompetensiId."
-          },
-          "response": []
+            "url": {
+              "raw": "{{base_url}}/assessments/generate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "assessments",
+                "generate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit Pre-Test",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [0, 1, 2, 3, 0, 1, 2, 3, 0, 1]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/assessments/1/submit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "assessments",
+                "1",
+                "submit"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roadmaps",
+      "item": [
+        {
+          "name": "Get Roadmaps by Profile ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/roadmaps/profile/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roadmaps",
+                "profile",
+                "1"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Roadmap by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/roadmaps/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "roadmaps",
+                "1"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Progress JRS",
+      "item": [
+        {
+          "name": "Get Progress JRS by Profile ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/progress-jrs/profile/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "progress-jrs",
+                "profile",
+                "1"
+              ]
+            }
+          }
         }
       ]
     }

@@ -6,7 +6,7 @@ export class GeminiService {
     systemPrompt: string,
     retries = 1,
   ): Promise<any> {
-    const modelId = "gemini-flash-latest";
+    const modelId = "gemini-pro-latest";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
     for (let i = 0; i < retries; i++) {
       try {
